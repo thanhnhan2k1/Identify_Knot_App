@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_home"
+    app:startDestination="@id/fragment_library">
+
+    <fragment
+        android:id="@+id/fragment_camera"
+        android:name="com.example.identifyknotapp.ui.camera.CameraFragment"
+        android:label="fragment_camera"
+        tools:layout="@layout/fragment_camera" >
+        <action
+            android:id="@+id/action_fragment_camera_to_fragment_detail"
+            app:destination="@id/fragment_detail" />
+    </fragment>
+    <fragment
+        android:id="@+id/fragment_library"
+        android:name="com.example.identifyknotapp.ui.library.LibraryFragment"
+        android:label="fragment_library"
+        tools:layout="@layout/fragment_library" >
+        <action
+            android:id="@+id/action_fragment_library_to_fragment_detail"
+            app:destination="@id/fragment_detail" />
+    </fragment>
+    <fragment
+        android:id="@+id/fragment_detail"
+        android:name="com.example.identifyknotapp.ui.result.SegmentationDetailFragment"
+        android:label="fragment_segmentation_detail"
+        tools:layout="@layout/fragment_segmentation_detail" >
+        <argument
+            android:name="image"
+            app:argType="string"
+            android:defaultValue="image_mobile.jpg" />
+    </fragment>
+</navigation>

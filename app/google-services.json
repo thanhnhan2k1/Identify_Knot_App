@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "550503333699",
+    "firebase_url": "https://datn-4adc6-default-rtdb.firebaseio.com",
+    "project_id": "datn-4adc6",
+    "storage_bucket": "datn-4adc6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:550503333699:android:28d43ba3e1f4414e7cb9f6",
+        "android_client_info": {
+          "package_name": "com.example.identifyknotapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBMhNFG5yhG9_1tx-LrvOJklRsTuF2tEDs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

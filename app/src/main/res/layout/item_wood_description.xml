@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    xmlns:tools="http://schemas.android.com/tools">
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:gravity="start"
+        android:textStyle="bold"
+        android:textColor="@color/material_dynamic_primary60"
+        android:paddingHorizontal="5dp"
+        tools:text="Name"
+        android:id="@+id/tv_title"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginVertical="10dp"
+        android:paddingHorizontal="10dp"
+        android:gravity="left|right"
+        tools:text="BomangaGỗ dác và gỗ lõi phân biệt, gỗ dác màu trắng vàng nhạt, gỗ lõi màu nâu vàng tới nâu hồng nhạt.Gỗ dác và gỗ lõi phân biệtGỗ dác và gỗ lõi phân biệt, gỗ dác màu trắng vàng nhạt, "
+        android:id="@+id/tv_content"/>
+</LinearLayout>
