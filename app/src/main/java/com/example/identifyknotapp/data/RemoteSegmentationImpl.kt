@@ -8,7 +8,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object RemoteSegmentationImpl {
-    fun getRemoteFoodService(): RemoteService {
+    fun getRemoteWoodService(): RemoteService {
         val okHttpClient = OkHttpClient.Builder()
             .connectTimeout(1, TimeUnit.MINUTES)
             .readTimeout(1, TimeUnit.MINUTES)
@@ -22,4 +22,19 @@ object RemoteSegmentationImpl {
             .build()
             .create(RemoteService::class.java)
     }
+    fun getRemoteWoodDescriptionsService(): RemoteService {
+        val okHttpClient = OkHttpClient.Builder()
+            .connectTimeout(1, TimeUnit.MINUTES)
+            .readTimeout(1, TimeUnit.MINUTES)
+            .writeTimeout(1, TimeUnit.MINUTES)
+            .build()
+        return Retrofit.Builder()
+            .addConverterFactory(GsonConverterFactory.create())
+            .baseUrl(Constant.DESCRIPTION_URL)
+            .client(okHttpClient)
+            .addCallAdapterFactory(CoroutineCallAdapterFactory())
+            .build()
+            .create(RemoteService::class.java)
+    }
+
 }

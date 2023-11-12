@@ -1,30 +1,22 @@
 package com.example.identifyknotapp.ui.result
 
 import android.os.Bundle
-import android.text.Html
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
-import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.example.identifyknotapp.R
+import com.bumptech.glide.Glide
 import com.example.identifyknotapp.data.RemoteSegmentationImpl
-import com.example.identifyknotapp.data.SegmentationRepository
 import com.example.identifyknotapp.data.model.Output
+import com.example.identifyknotapp.data.model.WoodRequestBody
 import com.example.identifyknotapp.databinding.FragmentSegmentationDetailBinding
 import com.example.identifyknotapp.ui.SegmentationViewModel
 import com.example.identifyknotapp.ui.SegmentationViewModelFactory
-import com.google.gson.internal.LinkedTreeMap
-import com.squareup.picasso.Picasso
-import retrofit2.Call
-import retrofit2.Response
-import javax.security.auth.callback.Callback
+import com.google.firebase.storage.FirebaseStorage
 
 class SegmentationDetailFragment : Fragment() {
     private lateinit var _binding: FragmentSegmentationDetailBinding
@@ -42,9 +34,11 @@ class SegmentationDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val remoteService = RemoteSegmentationImpl.getRemoteFoodService()
-        val viewModelFactory = SegmentationViewModelFactory(remoteService)
+        val remoteService = RemoteSegmentationImpl.getRemoteWoodService()
+        val remoteDescription = RemoteSegmentationImpl.getRemoteWoodDescriptionsService()
+        val viewModelFactory = SegmentationViewModelFactory(remoteService, remoteDescription)
         val image = arg.image
+        val imageBase64 = arg.imageBase64
         val adapter = DescriptionWoodAdapter()
         _viewModel = ViewModelProvider(this, viewModelFactory)[SegmentationViewModel::class.java]
         _binding.rvDetailWood.adapter = adapter
@@ -55,24 +49,30 @@ class SegmentationDetailFragment : Fragment() {
             isLoading(false)
             setView(result)
         }
+
         _viewModel.woodDescriptions.observe(viewLifecycleOwner) { listDescriptions ->
             adapter.setData(listDescriptions)
             isLoading(false)
         }
 
+        _viewModel.loadingSuccess.observe(viewLifecycleOwner) { status ->
+
+        }
+
         _binding.btnViewMore.setOnClickListener {
-            _viewModel.getWoodDescriptions()
+            val body = WoodRequestBody(image = imageBase64)
+            _viewModel.getWoodDescriptions(body)
             _binding.rvDetailWood.isVisible = true
             _binding.btnViewMore.isVisible = false
             isLoading(true)
         }
     }
     private fun setView(result: Output){
-        Picasso.get().load(result.resultImage?.toUri()).into(_binding.imageResult)
         _binding.numberSingleKnots.text = "${result.numberOfSingle}"
         _binding.numberDoubleKnots.text = "${result.numberOfDouble}"
         _binding.areaSingleKnots.text = "${result.averageAreaSingle}"
         _binding.areaDoubleKnots.text = "${result.averageAreaDouble}"
+        Glide.with(this).load(result.resultImage).into(_binding.imageResult)
         _binding.back.setOnClickListener {
             findNavController().popBackStack()
         }
@@ -88,5 +88,8 @@ class SegmentationDetailFragment : Fragment() {
                 _binding.loading.visibility = View.INVISIBLE
             }
         }
+    }
+    private fun isLoadingSuccess(status: Boolean) {
+
     }
 }

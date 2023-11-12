@@ -2,6 +2,7 @@ package com.example.identifyknotapp.ui.library
 
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import android.graphics.Matrix
 import android.net.Uri
@@ -21,7 +22,12 @@ import androidx.navigation.fragment.findNavController
 import com.example.identifyknotapp.R
 import com.example.identifyknotapp.databinding.FragmentLibraryBinding
 import com.google.firebase.storage.FirebaseStorage
+import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Base64
+import java.util.Calendar
+import java.util.Locale
 
 
 class LibraryFragment : Fragment() {
@@ -30,6 +36,7 @@ class LibraryFragment : Fragment() {
     private lateinit var _resultLauncher: ActivityResultLauncher<Intent>
 
     private val storageRef = FirebaseStorage.getInstance().reference
+    private var _imageName = ""
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -51,7 +58,7 @@ class LibraryFragment : Fragment() {
         }
 
         _binding.imageSegmentation.setOnClickListener {
-            val action = LibraryFragmentDirections.actionFragmentLibraryToFragmentDetail("image_mobile.jpg")
+            val action = LibraryFragmentDirections.actionFragmentLibraryToFragmentDetail(_imageName, convertImageToBase64())
             findNavController().navigate(action)
         }
     }
@@ -64,7 +71,11 @@ class LibraryFragment : Fragment() {
                 if (result.data != null) {
                     val linkImg: Uri? = result.data?.data
                     linkImg?.let { image ->
-                        storageRef.child("images/image_mobile.jpg").putFile(image)
+                        val now = Calendar.getInstance().time
+                        val date = SimpleDateFormat("dd-MM-yyyy-HH-mm-ss", Locale.getDefault()).format(now)
+                        _imageName = "image_mobile_${date}.jpg"
+                        storageRef.child("images/${_imageName}").putFile(image)
+
                     }
                     try {
                         when (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
@@ -119,5 +130,12 @@ class LibraryFragment : Fragment() {
                 }
             }
         }
+    }
+
+    private fun convertImageToBase64(): String {
+        val stream = ByteArrayOutputStream()
+        _bitmapImage.compress(Bitmap.CompressFormat.JPEG, 100, stream)
+        val imageBytes = stream.toByteArray()
+        return android.util.Base64.encodeToString(imageBytes, android.util.Base64.DEFAULT)
     }
 }

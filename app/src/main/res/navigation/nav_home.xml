@@ -32,5 +32,9 @@
             android:name="image"
             app:argType="string"
             android:defaultValue="image_mobile.jpg" />
+        <argument
+            android:name="imageBase64"
+            app:argType="string"
+            android:defaultValue="image_mobile.jpg" />
     </fragment>
 </navigation>

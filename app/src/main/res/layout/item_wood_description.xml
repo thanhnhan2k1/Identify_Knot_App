@@ -10,7 +10,7 @@
         android:layout_gravity="start"
         android:gravity="start"
         android:textStyle="bold"
-        android:textColor="@color/material_dynamic_primary60"
+        android:textColor="#219BCC"
         android:paddingHorizontal="5dp"
         tools:text="Name"
         android:id="@+id/tv_title"/>
