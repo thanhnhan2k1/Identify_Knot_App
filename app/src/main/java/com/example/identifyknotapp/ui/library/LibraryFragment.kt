@@ -2,7 +2,6 @@ package com.example.identifyknotapp.ui.library
 
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import android.graphics.Matrix
 import android.net.Uri
@@ -19,13 +18,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import com.example.identifyknotapp.R
+import com.example.identifyknotapp.data.model.WoodRequestBody
 import com.example.identifyknotapp.databinding.FragmentLibraryBinding
 import com.google.firebase.storage.FirebaseStorage
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.text.SimpleDateFormat
-import java.util.Base64
 import java.util.Calendar
 import java.util.Locale
 
@@ -58,7 +56,11 @@ class LibraryFragment : Fragment() {
         }
 
         _binding.imageSegmentation.setOnClickListener {
-            val action = LibraryFragmentDirections.actionFragmentLibraryToFragmentDetail(_imageName, convertImageToBase64())
+            val woodBody = WoodRequestBody(image = convertImageToBase64())
+            val action = LibraryFragmentDirections.actionFragmentLibraryToFragmentDetail(
+                image = _imageName,
+                woodBody = woodBody
+            )
             findNavController().navigate(action)
         }
     }
@@ -72,7 +74,8 @@ class LibraryFragment : Fragment() {
                     val linkImg: Uri? = result.data?.data
                     linkImg?.let { image ->
                         val now = Calendar.getInstance().time
-                        val date = SimpleDateFormat("dd-MM-yyyy-HH-mm-ss", Locale.getDefault()).format(now)
+                        val date =
+                            SimpleDateFormat("dd-MM-yyyy-HH-mm-ss", Locale.getDefault()).format(now)
                         _imageName = "image_mobile_${date}.jpg"
                         storageRef.child("images/${_imageName}").putFile(image)
 

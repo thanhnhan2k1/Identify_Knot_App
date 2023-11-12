@@ -22,6 +22,7 @@ object RemoteSegmentationImpl {
             .build()
             .create(RemoteService::class.java)
     }
+
     fun getRemoteWoodDescriptionsService(): RemoteService {
         val okHttpClient = OkHttpClient.Builder()
             .connectTimeout(1, TimeUnit.MINUTES)

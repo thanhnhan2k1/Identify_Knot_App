@@ -10,4 +10,12 @@
     <string name="detail_image">Detail image</string>
     <string name="select_image">Select image</string>
     <string name="number_single_knot"><![CDATA[<p style="color:blue">Number of single knots:</p> %s]]></string>
+    <string name="format_area">%.3f</string>
+    <string name="segmentation_detail">Segmentation Detail</string>
+    <string name="wood_descriptions">Wood Descriptions</string>
+    <string name="number_of_single_knot">Number of single knot:</string>
+    <string name="number_of_double_knot">Number of double knot:</string>
+    <string name="average_area_of_single_knots_is">Average area of single knots is:</string>
+    <string name="average_area_of_double_knots_is">Average area of double knots is:</string>
+    <string name="view_more_information">View more information</string>
 </resources>

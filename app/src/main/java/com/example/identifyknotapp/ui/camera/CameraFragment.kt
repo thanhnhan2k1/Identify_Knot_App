@@ -3,6 +3,9 @@ package com.example.identifyknotapp.ui.camera
 import android.Manifest
 import android.content.ContentValues
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.graphics.Matrix
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
@@ -28,14 +31,15 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import com.example.identifyknotapp.R
+import com.example.identifyknotapp.data.model.WoodRequestBody
 import com.example.identifyknotapp.databinding.FragmentCameraBinding
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.net.URL
+import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -45,6 +49,8 @@ typealias LumaListener = (luma: Double) -> Unit
 class CameraFragment : Fragment() {
     private lateinit var binding: FragmentCameraBinding
     private var imageCapture: ImageCapture? = null
+    private lateinit var _bitmapImage: Bitmap
+    private var _imageName = ""
 
     private var videoCapture: VideoCapture<Recorder>? = null
 
@@ -52,7 +58,8 @@ class CameraFragment : Fragment() {
 
     private val activityResultLauncher =
         registerForActivityResult(
-            ActivityResultContracts.RequestMultiplePermissions())
+            ActivityResultContracts.RequestMultiplePermissions()
+        )
         { permissions ->
             // Handle Permission granted/rejected
             var permissionGranted = true
@@ -61,11 +68,13 @@ class CameraFragment : Fragment() {
                     permissionGranted = false
             }
             if (!permissionGranted) {
-                Toast.makeText(context,
+                Toast.makeText(
+                    context,
                     "Permission request denied",
-                    Toast.LENGTH_SHORT).show()
+                    Toast.LENGTH_SHORT
+                ).show()
             } else {
-                lifecycleScope.launch(Dispatchers.IO){
+                lifecycleScope.launch(Dispatchers.IO) {
                     startCamera()
                 }
             }
@@ -82,17 +91,20 @@ class CameraFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        if(allPermissionGranteds()){
-            lifecycleScope.launch(Dispatchers.IO){
+        if (allPermissionGranteds()) {
+            lifecycleScope.launch(Dispatchers.IO) {
                 startCamera()
             }
-        }
-        else{
+        } else {
             requestPermissions()
         }
         binding.imageCaptureButton.setOnClickListener { takePhoto() }
         binding.imageSegmentation.setOnClickListener {
-            val action = CameraFragmentDirections.actionFragmentCameraToFragmentDetail("image_camera.jpg")
+            val woodBody = WoodRequestBody(image = convertImageToBase64())
+            val action = CameraFragmentDirections.actionFragmentCameraToFragmentDetail(
+                image = _imageName,
+                woodBody = woodBody
+            )
             findNavController().navigate(action)
         }
         cameraExecutor = Executors.newSingleThreadExecutor()
@@ -140,10 +152,11 @@ class CameraFragment : Fragment() {
 
                 // Bind use cases to camera
                 cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview, imageCapture, imageAnalyzer)
+                    this, cameraSelector, preview, imageCapture, imageAnalyzer
+                )
 //                cameraProvider.bindToLifecycle(this, cameraSelector, preview, videoCapture)
 
-            } catch(exc: Exception) {
+            } catch (exc: Exception) {
                 Log.e(TAG, "Use case binding failed", exc)
             }
 
@@ -160,16 +173,18 @@ class CameraFragment : Fragment() {
         val contentValues = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, name)
             put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
-            if(Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
                 put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/CameraX-Image")
             }
         }
 
         // Create output options object which contains file + metadata
         val outputOptions = ImageCapture.OutputFileOptions
-            .Builder(requireActivity().contentResolver,
+            .Builder(
+                requireActivity().contentResolver,
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                contentValues)
+                contentValues
+            )
             .build()
 
         // Set up image capture listener, which is triggered after photo has
@@ -183,9 +198,31 @@ class CameraFragment : Fragment() {
                 }
 
                 override fun
-                        onImageSaved(output: ImageCapture.OutputFileResults){
+                        onImageSaved(output: ImageCapture.OutputFileResults) {
                     val storage = FirebaseStorage.getInstance().reference
-                    output.savedUri?.let { storage.child("images/image_camera.jpg").putFile(it) }
+                    val now = Calendar.getInstance().time
+                    val date =
+                        SimpleDateFormat("dd-MM-yyyy-HH-mm-ss", Locale.getDefault()).format(now)
+                    _imageName = "image_mobile_${date}.jpg"
+                    output.savedUri?.let { data ->
+                        storage.child("images/${_imageName}").putFile(data)
+                        val source = ImageDecoder.createSource(
+                            requireActivity().contentResolver,
+                            data
+                        )
+                        val bitmap = ImageDecoder.decodeBitmap(source)
+                        val matrix = Matrix()
+                        matrix.postRotate(0.0F)
+                        _bitmapImage = Bitmap.createBitmap(
+                            bitmap,
+                            0,
+                            0,
+                            bitmap.width,
+                            bitmap.height,
+                            matrix,
+                            true
+                        )
+                    }
                     binding.imageCapture.setImageURI(output.savedUri)
                     cameraExecutor.shutdown()
                     binding.viewFinder.visibility = View.INVISIBLE
@@ -196,9 +233,11 @@ class CameraFragment : Fragment() {
         )
 
     }
+
     private fun allPermissionGranteds() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(
-            requireContext(), it) == PackageManager.PERMISSION_GRANTED
+            requireContext(), it
+        ) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun requestPermissions() {
@@ -209,7 +248,7 @@ class CameraFragment : Fragment() {
         private const val TAG = "CameraXApp"
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
         private val REQUIRED_PERMISSIONS =
-            mutableListOf (
+            mutableListOf(
                 Manifest.permission.CAMERA,
                 Manifest.permission.RECORD_AUDIO
             ).apply {
@@ -217,6 +256,13 @@ class CameraFragment : Fragment() {
                     add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 }
             }.toTypedArray()
+    }
+
+    private fun convertImageToBase64(): String {
+        val stream = ByteArrayOutputStream()
+        _bitmapImage.compress(Bitmap.CompressFormat.JPEG, 100, stream)
+        val imageBytes = stream.toByteArray()
+        return android.util.Base64.encodeToString(imageBytes, android.util.Base64.DEFAULT)
     }
 }
 
