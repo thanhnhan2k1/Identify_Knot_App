@@ -20,6 +20,8 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.identifyknotapp.data.model.WoodRequestBody
 import com.example.identifyknotapp.databinding.FragmentLibraryBinding
+import com.google.firebase.Firebase
+import com.google.firebase.database.database
 import com.google.firebase.storage.FirebaseStorage
 import java.io.ByteArrayOutputStream
 import java.io.IOException
@@ -63,6 +65,12 @@ class LibraryFragment : Fragment() {
             )
             findNavController().navigate(action)
         }
+
+        _binding.selectAnotherImageButton.setOnClickListener {
+            val intent = Intent(Intent.ACTION_GET_CONTENT)
+            intent.type = "image/*"
+            _resultLauncher.launch(intent)
+        }
     }
 
     private fun openSelectImageResult() {
@@ -76,9 +84,19 @@ class LibraryFragment : Fragment() {
                         val now = Calendar.getInstance().time
                         val date =
                             SimpleDateFormat("dd-MM-yyyy-HH-mm-ss", Locale.getDefault()).format(now)
+                        val dateToDb =
+                            SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault()).format(now)
                         _imageName = "image_mobile_${date}.jpg"
-                        storageRef.child("images/${_imageName}").putFile(image)
+                        storageRef.child("images/${_imageName}").putFile(image).addOnSuccessListener { taskSnapshot ->
+                            taskSnapshot.storage.downloadUrl.addOnSuccessListener { uri ->
+                                val data = HashMap<String, Any>()
+                                data["image_link"] = uri.toString()
+                                data["date"] = dateToDb
 
+                                val db = Firebase.database.reference.child("history")
+                                db.child("image_mobile_${date}").updateChildren(data)
+                            }
+                        }
                     }
                     try {
                         when (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
@@ -124,6 +142,7 @@ class LibraryFragment : Fragment() {
                         _binding.imageCapture.setImageBitmap(_bitmapImage)
                         _binding.selectImageButton.visibility = View.INVISIBLE
                         _binding.imageSegmentation.visibility = View.VISIBLE
+                        _binding.selectAnotherImageButton.visibility = View.VISIBLE
 
                     } catch (e: IOException) {
                         e.printStackTrace()

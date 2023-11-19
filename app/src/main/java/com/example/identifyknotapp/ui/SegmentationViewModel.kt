@@ -11,6 +11,8 @@ import com.example.identifyknotapp.data.model.WoodDescription
 import com.example.identifyknotapp.data.model.WoodRequestBody
 import com.example.identifyknotapp.data.model.WoodResponse
 import com.example.identifyknotapp.ui.result.toListWoodDescriptions
+import com.google.firebase.Firebase
+import com.google.firebase.database.database
 import com.google.gson.internal.LinkedTreeMap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -32,6 +34,8 @@ class SegmentationViewModel(
     fun predictSegmentationImage(imageName: String) {
         viewModelScope.launch(Dispatchers.IO) {
             val output = remote.segmentationImage(imageName)
+            val id = imageName.split(".").first()
+            val db = Firebase.database.reference.child("history")
             output.enqueue(object : Callback,
                 retrofit2.Callback<Any> {
                 override fun onResponse(call: Call<Any>, response: Response<Any>) {
@@ -46,6 +50,15 @@ class SegmentationViewModel(
                                 .toDoubleOrNull(),
                             resultImage = map["resultImage"].toString()
                         )
+                        val data = HashMap<String, Any>()
+                        data["numberOfSingle"] = result.numberOfSingle ?: 0
+                        data["numberOfDouble"] = result.numberOfDouble ?: 0
+                        data["averageAreaSingle"] = result.averageAreaSingle ?: 0.0
+                        data["averageAreaDouble"] = result.averageAreaDouble ?: 0.0
+                        data["mask_link"] = result.resultImage ?: ""
+                        data["name"] = "N/A"
+
+                        db.child(id).updateChildren(data)
                         _segmentationResult.postValue(result)
                         _loadingSuccess.postValue(true)
                     } else {
@@ -62,9 +75,11 @@ class SegmentationViewModel(
         }
     }
 
-    fun getWoodDescriptions(image: WoodRequestBody) {
+    fun getWoodDescriptions(image: WoodRequestBody, imageName: String) {
         viewModelScope.launch(Dispatchers.IO) {
             val output = remoteDescription.getWoodDescriptions(image)
+            val id = imageName.split(".").first()
+            val db = Firebase.database.reference.child("history")
             output.enqueue(object : Callback,
                 retrofit2.Callback<Any> {
                 override fun onResponse(call: Call<Any>, response: Response<Any>) {
@@ -88,6 +103,24 @@ class SegmentationViewModel(
                                 color = map["color"].toString(),
                                 prob = map["prob"].toString()
                             )
+
+                            val data = HashMap<String, Any>()
+                            data["name"] = woodResponse.vietnamName
+                            data["vietnamName"] = woodResponse.vietnamName
+                            data["scientificName"] = woodResponse.scientificName
+                            data["commercialName"] = woodResponse.commercialName
+                            data["categoryWood"] = woodResponse.categoryWood
+                            data["preservation"] = woodResponse.preservation
+                            data["family"] = woodResponse.family
+                            data["specificGravity"] = woodResponse.specificGravity
+                            data["characteristic"] = woodResponse.characteristic
+                            data["appendixCites"] = woodResponse.appendixCites
+                            data["note"] = woodResponse.note
+                            data["area"] = woodResponse.area
+                            data["color"] = woodResponse.color
+                            data["prob"] = woodResponse.prob
+
+                            db.child(id).updateChildren(data)
                             _woodDescriptions.postValue(woodResponse.toListWoodDescriptions())
                         } else {
                             _woodDescriptions.postValue(listOf())

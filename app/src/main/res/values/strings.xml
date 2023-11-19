@@ -18,4 +18,10 @@
     <string name="average_area_of_single_knots_is">Average area of single knots is:</string>
     <string name="average_area_of_double_knots_is">Average area of double knots is:</string>
     <string name="view_more_information">View more information</string>
+    <string name="fragment_camera_title">Camera</string>
+    <string name="fragment_library_title">Library</string>
+    <string name="fragment_history_title">History</string>
+    <string name="take_another_image">Take another image</string>
+    <string name="history_of_segmentation">History of Segmentation</string>
+    <string name="no_information">N/A</string>
 </resources>

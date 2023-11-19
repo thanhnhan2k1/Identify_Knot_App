@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:ignore="contentDescription"/>
+        tools:ignore="contentDescription" />
 
     <androidx.camera.view.PreviewView
         android:id="@+id/viewFinder"
@@ -40,6 +40,18 @@
         app:layout_constraintRight_toRightOf="parent" />
 
     <Button
+        android:id="@+id/take_another_image"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_marginBottom="100dp"
+        android:elevation="2dp"
+        android:text="@string/take_another_image"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@id/image_segmentation" />
+
+    <Button
         android:id="@+id/image_segmentation"
         android:layout_width="100dp"
         android:layout_height="100dp"
@@ -48,6 +60,6 @@
         android:text="@string/segmentation_image"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintLeft_toRightOf="@id/take_another_image"
         app:layout_constraintRight_toRightOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

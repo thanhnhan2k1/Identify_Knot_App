@@ -98,6 +98,7 @@ class CameraFragment : Fragment() {
         } else {
             requestPermissions()
         }
+        cameraExecutor = Executors.newSingleThreadExecutor()
         binding.imageCaptureButton.setOnClickListener { takePhoto() }
         binding.imageSegmentation.setOnClickListener {
             val woodBody = WoodRequestBody(image = convertImageToBase64())
@@ -107,7 +108,14 @@ class CameraFragment : Fragment() {
             )
             findNavController().navigate(action)
         }
-        cameraExecutor = Executors.newSingleThreadExecutor()
+        binding.takeAnotherImage.setOnClickListener {
+            binding.viewFinder.visibility = View.VISIBLE
+            binding.imageCapture.visibility = View.INVISIBLE
+            binding.imageCaptureButton.visibility = View.VISIBLE
+            binding.imageSegmentation.visibility = View.INVISIBLE
+            binding.takeAnotherImage.visibility = View.INVISIBLE
+        }
+
     }
 
     override fun onDestroy() {
@@ -225,9 +233,11 @@ class CameraFragment : Fragment() {
                     }
                     binding.imageCapture.setImageURI(output.savedUri)
                     cameraExecutor.shutdown()
+                    binding.imageCapture.visibility = View.VISIBLE
                     binding.viewFinder.visibility = View.INVISIBLE
                     binding.imageCaptureButton.visibility = View.INVISIBLE
                     binding.imageSegmentation.visibility = View.VISIBLE
+                    binding.takeAnotherImage.visibility = View.VISIBLE
                 }
             }
         )
