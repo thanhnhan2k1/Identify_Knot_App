@@ -46,8 +46,6 @@ class SegmentationDetailFragment : Fragment() {
         val remoteService = RemoteSegmentationImpl.getRemoteWoodService()
         val remoteDescription = RemoteSegmentationImpl.getRemoteWoodDescriptionsService()
         val viewModelFactory = SegmentationViewModelFactory(remoteService, remoteDescription)
-        val image = _arg.image
-        val woodBody = _arg.woodBody
         _dateSegmentation = arguments?.getString("date") ?: ""
 
         _viewModel = ViewModelProvider(this, viewModelFactory)[SegmentationViewModel::class.java]
@@ -58,6 +56,7 @@ class SegmentationDetailFragment : Fragment() {
             setHistoryView(_dateSegmentation)
         }
         else {
+            val image = _arg.image
             _viewModel.predictSegmentationImage(imageName = image)
 
             _viewModel.segmentationResult.observe(viewLifecycleOwner) { result ->
@@ -86,7 +85,7 @@ class SegmentationDetailFragment : Fragment() {
             }
 
             _binding.btnViewMore.setOnClickListener {
-                _viewModel.getWoodDescriptions(woodBody, image)
+                _viewModel.getWoodDescriptions(image)
                 _binding.rvDetailWood.isVisible = true
                 _binding.btnViewMore.visibility = View.INVISIBLE
                 isLoading(true)
@@ -120,6 +119,7 @@ class SegmentationDetailFragment : Fragment() {
                     _binding.areaDoubleKnots.text =
                         getString(R.string.format_area).format(averageAreaDouble)
                     Glide.with(requireContext()).load(mask_link).into(_binding.imageResult)
+                    _binding.rvDetailWood.isVisible = vietnamName.isNotEmpty()
                     _adapter.setData(result.toListWoodDescriptions())
                     _binding.btnViewMore.isVisible = false
                 }

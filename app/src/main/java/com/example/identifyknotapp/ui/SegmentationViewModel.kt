@@ -12,6 +12,9 @@ import com.example.identifyknotapp.data.model.WoodRequestBody
 import com.example.identifyknotapp.data.model.WoodResponse
 import com.example.identifyknotapp.ui.result.toListWoodDescriptions
 import com.google.firebase.Firebase
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.database
 import com.google.gson.internal.LinkedTreeMap
 import kotlinx.coroutines.Dispatchers
@@ -75,67 +78,79 @@ class SegmentationViewModel(
         }
     }
 
-    fun getWoodDescriptions(image: WoodRequestBody, imageName: String) {
+    fun getWoodDescriptions(imageName: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            val output = remoteDescription.getWoodDescriptions(image)
             val id = imageName.split(".").first()
             val db = Firebase.database.reference.child("history")
-            output.enqueue(object : Callback,
-                retrofit2.Callback<Any> {
-                override fun onResponse(call: Call<Any>, response: Response<Any>) {
-                    if (response.body() != null) {
-                        val map = response.body() as LinkedTreeMap<*, *>
-                        if (map["des"].toString() == "OK") {
-                            val woodResponse = WoodResponse(
-                                des = map["des"].toString(),
-                                id = map["id"].toString(),
-                                vietnamName = map["vietnamName"].toString(),
-                                scientificName = map["scientificName"].toString(),
-                                commercialName = map["commercialName"].toString(),
-                                categoryWood = map["categoryWood"].toString(),
-                                preservation = map["preservation"].toString(),
-                                family = map["family"].toString(),
-                                specificGravity = map["specificGravity"].toString(),
-                                characteristic = map["characteristic"].toString(),
-                                appendixCites = map["appendixCites"].toString(),
-                                note = map["note"].toString(),
-                                area = map["area"].toString(),
-                                color = map["color"].toString(),
-                                prob = map["prob"].toString()
-                            )
 
-                            val data = HashMap<String, Any>()
-                            data["name"] = woodResponse.vietnamName
-                            data["vietnamName"] = woodResponse.vietnamName
-                            data["scientificName"] = woodResponse.scientificName
-                            data["commercialName"] = woodResponse.commercialName
-                            data["categoryWood"] = woodResponse.categoryWood
-                            data["preservation"] = woodResponse.preservation
-                            data["family"] = woodResponse.family
-                            data["specificGravity"] = woodResponse.specificGravity
-                            data["characteristic"] = woodResponse.characteristic
-                            data["appendixCites"] = woodResponse.appendixCites
-                            data["note"] = woodResponse.note
-                            data["area"] = woodResponse.area
-                            data["color"] = woodResponse.color
-                            data["prob"] = woodResponse.prob
+            db.child(id).child("imgBase64").addListenerForSingleValueEvent(object :
+                ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val imgBase64 = snapshot.getValue(String::class.java) ?: ""
+                    val output = remoteDescription.getWoodDescriptions(WoodRequestBody(image = imgBase64))
+                    output.enqueue(object : Callback,
+                        retrofit2.Callback<Any> {
+                        override fun onResponse(call: Call<Any>, response: Response<Any>) {
+                            if (response.body() != null) {
+                                val map = response.body() as LinkedTreeMap<*, *>
+                                if (map["des"].toString() == "OK") {
+                                    val woodResponse = WoodResponse(
+                                        des = map["des"].toString(),
+                                        id = map["id"].toString(),
+                                        vietnamName = map["vietnamName"].toString(),
+                                        scientificName = map["scientificName"].toString(),
+                                        commercialName = map["commercialName"].toString(),
+                                        categoryWood = map["categoryWood"].toString(),
+                                        preservation = map["preservation"].toString(),
+                                        family = map["family"].toString(),
+                                        specificGravity = map["specificGravity"].toString(),
+                                        characteristic = map["characteristic"].toString(),
+                                        appendixCites = map["appendixCites"].toString(),
+                                        note = map["note"].toString(),
+                                        area = map["area"].toString(),
+                                        color = map["color"].toString(),
+                                        prob = map["prob"].toString()
+                                    )
 
-                            db.child(id).updateChildren(data)
-                            _woodDescriptions.postValue(woodResponse.toListWoodDescriptions())
-                        } else {
-                            _woodDescriptions.postValue(listOf())
+                                    val data = HashMap<String, Any>()
+                                    data["name"] = woodResponse.vietnamName
+                                    data["vietnamName"] = woodResponse.vietnamName
+                                    data["scientificName"] = woodResponse.scientificName
+                                    data["commercialName"] = woodResponse.commercialName
+                                    data["categoryWood"] = woodResponse.categoryWood
+                                    data["preservation"] = woodResponse.preservation
+                                    data["family"] = woodResponse.family
+                                    data["specificGravity"] = woodResponse.specificGravity
+                                    data["characteristic"] = woodResponse.characteristic
+                                    data["appendixCites"] = woodResponse.appendixCites
+                                    data["note"] = woodResponse.note
+                                    data["area"] = woodResponse.area
+                                    data["color"] = woodResponse.color
+                                    data["prob"] = woodResponse.prob
+
+                                    db.child(id).updateChildren(data)
+                                    _woodDescriptions.postValue(woodResponse.toListWoodDescriptions())
+                                } else {
+                                    _woodDescriptions.postValue(listOf())
+                                }
+                                _loadingSuccess.postValue(true)
+                            } else {
+                                _woodDescriptions.postValue(listOf())
+                                _loadingSuccess.postValue(false)
+                            }
                         }
-                        _loadingSuccess.postValue(true)
-                    } else {
-                        _woodDescriptions.postValue(listOf())
-                        _loadingSuccess.postValue(false)
-                    }
+
+                        override fun onFailure(call: Call<Any>, t: Throwable) {
+                            Log.i("Response", "Failed")
+                            _loadingSuccess.postValue(false)
+                        }
+                    })
                 }
 
-                override fun onFailure(call: Call<Any>, t: Throwable) {
-                    Log.i("Response", "Failed")
+                override fun onCancelled(error: DatabaseError) {
                     _loadingSuccess.postValue(false)
                 }
+
             })
         }
     }

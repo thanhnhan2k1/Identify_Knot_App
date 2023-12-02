@@ -33,6 +33,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.identifyknotapp.data.model.WoodRequestBody
 import com.example.identifyknotapp.databinding.FragmentCameraBinding
+import com.google.firebase.Firebase
+import com.google.firebase.database.database
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -101,10 +103,8 @@ class CameraFragment : Fragment() {
         cameraExecutor = Executors.newSingleThreadExecutor()
         binding.imageCaptureButton.setOnClickListener { takePhoto() }
         binding.imageSegmentation.setOnClickListener {
-            val woodBody = WoodRequestBody(image = convertImageToBase64())
             val action = CameraFragmentDirections.actionFragmentCameraToFragmentDetail(
-                image = _imageName,
-                woodBody = woodBody
+                image = _imageName
             )
             findNavController().navigate(action)
         }
@@ -213,7 +213,7 @@ class CameraFragment : Fragment() {
                         SimpleDateFormat("dd-MM-yyyy-HH-mm-ss", Locale.getDefault()).format(now)
                     _imageName = "image_mobile_${date}.jpg"
                     output.savedUri?.let { data ->
-                        storage.child("images/${_imageName}").putFile(data)
+
                         val source = ImageDecoder.createSource(
                             requireActivity().contentResolver,
                             data
@@ -230,6 +230,17 @@ class CameraFragment : Fragment() {
                             matrix,
                             true
                         )
+                        storage.child("images/${_imageName}").putFile(data).addOnSuccessListener { taskSnapshot ->
+                            taskSnapshot.storage.downloadUrl.addOnSuccessListener { uri ->
+                                val data = HashMap<String, Any>()
+                                data["image_link"] = uri.toString()
+                                data["date"] = date
+                                data["imgBase64"] = convertImageToBase64()
+
+                                val db = Firebase.database.reference.child("history")
+                                db.child("image_mobile_${date}").updateChildren(data)
+                            }
+                        }
                     }
                     binding.imageCapture.setImageURI(output.savedUri)
                     cameraExecutor.shutdown()

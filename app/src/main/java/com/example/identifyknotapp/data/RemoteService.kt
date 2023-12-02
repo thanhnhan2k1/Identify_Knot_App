@@ -9,6 +9,6 @@ import retrofit2.http.Query
 interface RemoteService {
     @POST("uploads")
     fun segmentationImage(@Query("image") image: String): Call<Any>
-    @POST("predict")
+    @POST("predictNhan")
     fun getWoodDescriptions(@Body image: WoodRequestBody): Call<Any>
 }

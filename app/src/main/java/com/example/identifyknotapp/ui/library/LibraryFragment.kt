@@ -58,10 +58,8 @@ class LibraryFragment : Fragment() {
         }
 
         _binding.imageSegmentation.setOnClickListener {
-            val woodBody = WoodRequestBody(image = convertImageToBase64())
             val action = LibraryFragmentDirections.actionFragmentLibraryToFragmentDetail(
-                image = _imageName,
-                woodBody = woodBody
+                image = _imageName
             )
             findNavController().navigate(action)
         }
@@ -80,24 +78,7 @@ class LibraryFragment : Fragment() {
             if (result.resultCode == AppCompatActivity.RESULT_OK) {
                 if (result.data != null) {
                     val linkImg: Uri? = result.data?.data
-                    linkImg?.let { image ->
-                        val now = Calendar.getInstance().time
-                        val date =
-                            SimpleDateFormat("dd-MM-yyyy-HH-mm-ss", Locale.getDefault()).format(now)
-                        val dateToDb =
-                            SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault()).format(now)
-                        _imageName = "image_mobile_${date}.jpg"
-                        storageRef.child("images/${_imageName}").putFile(image).addOnSuccessListener { taskSnapshot ->
-                            taskSnapshot.storage.downloadUrl.addOnSuccessListener { uri ->
-                                val data = HashMap<String, Any>()
-                                data["image_link"] = uri.toString()
-                                data["date"] = dateToDb
 
-                                val db = Firebase.database.reference.child("history")
-                                db.child("image_mobile_${date}").updateChildren(data)
-                            }
-                        }
-                    }
                     try {
                         when (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
                             true -> {
@@ -146,6 +127,26 @@ class LibraryFragment : Fragment() {
 
                     } catch (e: IOException) {
                         e.printStackTrace()
+                    }
+
+                    linkImg?.let { image ->
+                        val now = Calendar.getInstance().time
+                        val date =
+                            SimpleDateFormat("dd-MM-yyyy-HH-mm-ss", Locale.getDefault()).format(now)
+                        val dateToDb =
+                            SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault()).format(now)
+                        _imageName = "image_mobile_${date}.jpg"
+                        storageRef.child("images/${_imageName}").putFile(image).addOnSuccessListener { taskSnapshot ->
+                            taskSnapshot.storage.downloadUrl.addOnSuccessListener { uri ->
+                                val data = HashMap<String, Any>()
+                                data["image_link"] = uri.toString()
+                                data["date"] = dateToDb
+                                data["imgBase64"] = convertImageToBase64()
+
+                                val db = Firebase.database.reference.child("history")
+                                db.child("image_mobile_${date}").updateChildren(data)
+                            }
+                        }
                     }
                 } else {
                     Toast.makeText(context, "No image selected!", Toast.LENGTH_SHORT).show()

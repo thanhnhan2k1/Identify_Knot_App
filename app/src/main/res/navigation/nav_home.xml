@@ -32,9 +32,6 @@
             android:name="image"
             app:argType="string"
             android:defaultValue="image_mobile.jpg" />
-        <argument
-            android:name="woodBody"
-            app:argType="com.example.identifyknotapp.data.model.WoodRequestBody"/>
 
     </fragment>
     <fragment
