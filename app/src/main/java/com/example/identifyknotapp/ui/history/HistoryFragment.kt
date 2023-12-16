@@ -17,6 +17,8 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.database
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class HistoryFragment : Fragment() {
     private lateinit var _binding: FragmentHistoryBinding
@@ -44,19 +46,27 @@ class HistoryFragment : Fragment() {
     }
 
     private fun getHistory() {
-        _db.child("history").addValueEventListener(object: ValueEventListener {
+        _db.child("history").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val listWood = mutableListOf<WoodHistory>()
                 for (item: DataSnapshot in snapshot.children) {
-                    item.getValue(WoodHistory::class.java).let {wood ->
-                        if(wood != null) listWood.add(wood)
+                    item.getValue(WoodHistory::class.java).let { wood ->
+                        if (wood != null) listWood.add(wood)
                     }
                 }
+                listWood.sortByDescending {
+                    SimpleDateFormat(
+                        "dd/MM/yyyy",
+                        Locale.getDefault()
+                    ).parse(it.date.split(" ").first())
+                }
                 _adapter.setData(listWood)
+                _binding.loading.visibility = View.GONE
             }
 
             override fun onCancelled(error: DatabaseError) {
                 _adapter.setData(emptyList())
+                _binding.loading.visibility = View.GONE
                 Toast.makeText(requireContext(), "Loading Fail!", Toast.LENGTH_SHORT).show()
             }
         })
