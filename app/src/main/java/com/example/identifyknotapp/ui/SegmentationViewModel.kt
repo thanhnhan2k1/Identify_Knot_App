@@ -109,7 +109,7 @@ class SegmentationViewModel(
                                         note = map["note"].toString(),
                                         area = map["area"].toString(),
                                         color = map["color"].toString(),
-                                        prob = map["prob"].toString()
+                                        accuracy = map["acc"].toString()
                                     )
 
                                     val data = HashMap<String, Any>()
@@ -126,7 +126,7 @@ class SegmentationViewModel(
                                     data["note"] = woodResponse.note
                                     data["area"] = woodResponse.area
                                     data["color"] = woodResponse.color
-                                    data["prob"] = woodResponse.prob
+                                    data["acc"] = woodResponse.accuracy
 
                                     db.child(id).updateChildren(data)
                                     _woodDescriptions.postValue(woodResponse.toListWoodDescriptions())

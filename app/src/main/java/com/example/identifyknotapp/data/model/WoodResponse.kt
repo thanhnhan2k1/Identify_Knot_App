@@ -15,5 +15,5 @@ data class WoodResponse(
     val note: String = "",
     val color: String = "",
     val area: String = "",
-    val prob: String = ""
+    val accuracy: String = ""
 )
